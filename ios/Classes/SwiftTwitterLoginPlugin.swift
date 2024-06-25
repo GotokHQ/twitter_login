@@ -30,8 +30,27 @@ public class SwiftTwitterLoginPlugin: NSObject, FlutterPlugin, ASWebAuthenticati
         let url = args["url"] as! String
         let urlScheme = args["redirectURL"] as? String
         
-        // iOS12以降
-        if #available(iOS 12.0, *) {
+        // iOS17.4以降
+        if #available(iOS 17.4, *) {
+            var authSession: ASWebAuthenticationSession?
+            authSession = ASWebAuthenticationSession(
+                url: URL(string: url)!,
+                callback: ASWebAuthenticationSession.Callback.customScheme(urlScheme!)
+            ) { url, error in
+                result(url?.absoluteString)
+                authSession!.cancel()
+                self.session = nil
+            }
+            self.session = authSession
+            if #available(iOS 13.0, *) {
+                authSession?.presentationContextProvider = self
+            }
+            if !authSession!.start() {
+            // TODO: failed
+            }
+        // iOS11のみ
+        }
+        else if #available(iOS 12.0, *) {
             var authSession: ASWebAuthenticationSession?
             authSession = ASWebAuthenticationSession(
                 url: URL(string: url)!,
